@@ -3,7 +3,7 @@ Read and write data on HDFS from R
 
 ## Dependencies
 - R package `httr` -> Used to make curl requests.
-- Linux package `libcurl4-openssl-dev` -> Dependency of the `httr` package. Can be install with the following command `sudo apt-get install -y libcurl4-openssl-dev`.
+- Linux package `libcurl4-openssl-dev` -> Dependency of the `httr` package. Can be installed with the following command `sudo apt-get install -y libcurl4-openssl-dev`.
 
 The commands to install theses dependencies are also presents in the file write.R.
 
