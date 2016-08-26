@@ -1,5 +1,5 @@
-# Choose a cran mirror to use (48 = Paris / France)
-chooseCRANmirror(ind = 48)
+# Choose a cran mirror to use (1 = https://cloud.r-project.org/, worldwide redirection)
+chooseCRANmirror(ind = 1)
 
 # Install dependencies if necessary
 if (!require(httr)) {
