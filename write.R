@@ -1,24 +1,16 @@
-# Choose a cran mirror to use (1 = https://cloud.r-project.org/, worldwide redirection)
-chooseCRANmirror(ind = 1)
+library(httr)
 
-# Install dependencies if necessary
-if (!require(httr)) {
-    # System dependency for the curl package
-    system("sudo apt-get install -y libcurl4-openssl-dev")
-    install.packages("httr")
-    library(httr)
-}
-
-### Parameters to set
+##### Parameters to set #####
 # WebHDFS url
-hdfsUri <- "http://namenodedns:port/webhdfs/v1"
+hdfsUri <- "https://nn1.pX.company.prod.saagie.io:50470/webhdfs/v1"
 # Url where you want to append the file
-fileUri <- "/user/username/myfile.csv"
-# Optional parameter, with the format &name1=value1&name2=value2
-optionnalParameters <- "&overwrite=true"
+fileUri <- "/tmp/myfile.csv"
 
 # CREATE => creation of a file
 writeParameter <- "?op=CREATE"
+
+# Optional parameter, with the format &name1=value1&name2=value2
+optionnalParameters <- "&overwrite=true"
 
 # Concatenate all the parameters into one uri
 uri <- paste0(hdfsUri, fileUri, writeParameter, optionnalParameters)
@@ -34,14 +26,35 @@ uriWrite <- response$url
 data <- mtcars
 
 # Write a temporary file on the disk
-if(!file.exists("tmp.csv")) {
-    write.csv(data, row.names = F, file = "tmp.csv")
+write.csv(data, row.names = F, file = "tmp.csv")
 
-    # Upload the file with a PUT request
-    responseWrite <- PUT(uriWrite, body = upload_file("tmp.csv"))
 
-    # removes the temporary file
-    file.remove('tmp.csv')
-} else {
-    stop("A file named 'tmp.csv' already exists in the current directory")
-}
+##### Upload to hdfs without Kerberos #####
+
+# Upload the file with a PUT request
+responseWrite <- PUT(uriWrite, body = upload_file("tmp.csv"))
+
+
+##### Upload to hdfs with Kerberos #####
+
+library(getPass)
+# Method 1 (interactive) : Use in Rstudio. Interactive pop up to enter password
+system('kinit user',input=getPass('Enter your password: '))
+
+# Method 2 (scripts) : Use outside of Rstudio.
+# Password is written in command line or stored in a environment variable
+# Uncomment next line to use
+# system('echo password | kinit user')
+
+# Authentification with Kerberos
+auth <- authenticate(":","","gssnegotiate")
+
+# Ask the namenode on which datanode to write the file
+response <- PUT(uriDest, auth)
+response
+
+# Get the url of the datanode returned by hdfs
+uriWrite <- response$url
+
+# Upload the file with a PUT request
+responseWrite <- PUT(uriWrite, auth, body = upload_file("tmp.csv"))
